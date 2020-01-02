@@ -97,8 +97,8 @@
       <!-- 按钮 -->
       <div style="height:60px">
         <el-row type="flex" justify="center">
-          <el-button size="mini">清除</el-button>
-          <el-button type="primary" size="mini">搜索</el-button>
+          <el-button size="mini" @click="clear">清除</el-button>
+          <el-button type="primary" size="mini" @click="serch">搜索</el-button>
         </el-row>
       </div>
     </el-form>
@@ -190,7 +190,7 @@ export default {
         creatorID:"", //录入人
         catalogID:"" //目录
       }, // 搜索栏封装
-      
+
       tableData: [
         // {
         //   id: "1",
@@ -204,24 +204,52 @@ export default {
         //   operation: "9"
         // }
       ], // 基础列表
+      // 分页数据
       page: {
         total: 0, //总页数
         currentPage: 1, // 默认当前页数，第一条页数
         pageSize: [10] // 默认每页条数,好像默认就是10
       },
-      currentRow: null
     };
   },
   methods: {
+    // 搜索功能
+   serch() {
+      debugger
+      this.page.currentPage=1;
+      this.getbasequest(this.serchFrom) // 接口有问题?
+      this.clear()
+    },
+    // 清楚功能
+    clear() {
+      this.serchFrom={
+          // 第一行
+        subjectID: "", // 学科
+        difficulty: "", // 试题难度
+        questionType: "", // 试题类型
+        tags: "" ,// 标签
+        // 第二行
+        province:"" ,// 所在省份
+        city:"", // 所在城市
+        keyword:"" ,// 关键字
+        remarks:"", // 题目备注
+        // 第三行
+        shortName:"", //企业简称
+        direction:"", //方向
+        creatorID:"", //录入人
+        catalogID:"" //目录
+      }
+    },
     // 点击跳转到新增页面
     skipNewText() {
       this.$router.push("/questions/new");
     },
     // 获取基础试题列表
-    async getbasequest() {
+    async getbasequest(data) {
       let result = await list({
         page: this.page.currentPage, // 默认请求第1条数据
-        pagesize: this.page.pageSize[0] // 请求每页多少条
+        pagesize: this.page.pageSize[0], // 请求每页多少条
+        ...data
       });
       // console.log(result.data);
       this.tableData = result.data.items;
