@@ -104,17 +104,19 @@
     </el-form>
     <!-- 列表 -->
     <el-table ref="singleTable" highlight-current-row :data="tableData" style="width: 100%">
-      <el-table-column property="id" label="序号" type="index" width="100"></el-table-column>
-      <el-table-column property="number" label="试题编号" width="120"></el-table-column>
-      <el-table-column :formatter="fmattersubjectID" property="subjectID" label="学科" width="120"></el-table-column>
+      <el-table-column property="id" label="序号" type="index" width="80"></el-table-column>
+      <el-table-column property="number" label="试题编号" width="180"></el-table-column>
+      <el-table-column :formatter="fmattersubjectID" property="subjectID" label="学科" width="100"></el-table-column>
       <el-table-column
         :formatter="formatterquestionType"
         prop="questionType"
         label="题型"
         width="120"
       ></el-table-column>
-      <el-table-column property="question" label="题干" width="120"></el-table-column>
-      <el-table-column property="addDate" label="录入时间" width="240"></el-table-column>
+      <el-table-column property="question" label="题干" width="140"></el-table-column>
+      <el-table-column property="addDate" label="录入时间" width="200">
+        <template slot-scope="obj">{{obj.row.addDate | parseTimeByString}}</template>
+      </el-table-column>
       <el-table-column
         :formatter="formatterdifficulty"
         property="difficulty"
@@ -141,12 +143,107 @@
         :current-page="page.currentPage"
         @current-change="cheagePage"
       ></el-pagination>
+      <!-- 题目预览弹窗 -->
+      <el-dialog title="题目预览" :visible.sync="dialogFormVisible">
+           <el-form :inline="true">
+      <!-- 第一行 -->
+      <el-row type="flex" justify="start">
+        <el-form-item label="学科">
+          <el-select v-model="serchFrom.subjectID" placeholder="请选择">
+            <el-option
+              v-for="item in subjectID"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-select v-model="serchFrom.difficulty" placeholder="请选择">
+            <el-option
+              v-for="item in difficulty"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="试题类型">
+          <el-select v-model="serchFrom.questionType" placeholder="请选择">
+            <el-option
+              v-for="item in questionType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-select v-model="serchFrom.tags" placeholder="请选择">
+            <el-option
+              v-for="item in tagslist"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-row>
+      <!-- 第二行 -->
+      <el-row type="flex" justify="center">
+        <el-form-item label="省份">
+          <el-select v-model="serchFrom.province" placeholder="请选择" @change="getCitys">
+            <el-option v-for="(item,index) in provinces" :key="index" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="城市">
+          <el-select v-model="serchFrom.city" placeholder="请选择">
+            <el-option v-for="(item,index) in citys" :key="index" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键字">
+          <el-input v-model="serchFrom.keyword" placeholder="请输入内容"></el-input>
+        </el-form-item>
+        <el-form-item label="题目备注">
+          <el-input v-model="serchFrom.remarks" placeholder="请输入内容"></el-input>
+        </el-form-item>
+      </el-row>
+      <!-- 第三行 -->
+      <el-row type="flex" justify="end">
+        <el-form-item label="企业简称">
+          <el-input v-model="serchFrom.shortName" placeholder="请输入内容"></el-input>
+        </el-form-item>
+        <el-form-item label="方向">
+          <el-select v-model="serchFrom.direction" placeholder="请选择">
+            <el-option v-for="(item,index) in direction" :key="index" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="录入人">
+          <el-select v-model="serchFrom.creatorID" placeholder="请选择">
+            <el-option
+              v-for="item in directoryspeaplo"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="二级目录">
+          <el-input v-model="serchFrom.catalogID" placeholder="请输入内容"></el-input>
+        </el-form-item>
+      </el-row>
+    </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+        </div>
+      </el-dialog>
     </el-row>
   </el-card>
 </template>
 
 <script>
-import { list, detail,remove} from "../../api/hmmm/questions";
+import { list, detail, remove } from "../../api/hmmm/questions";
 import { simple as subjectlist } from "../../api/hmmm/subjects";
 import { simple as tagslist } from "../../api/hmmm/tags";
 import { direction, questionType, difficulty } from "../../api/hmmm/constants";
@@ -211,19 +308,35 @@ export default {
         total: 0, //总页数
         currentPage: 1, // 默认当前页数，第一条页数
         pageSize: [10] // 默认每页条数,好像默认就是10
-      }
-    }; 
+      },
+        dialogFormVisible: false,
+        form: {
+          name: '',
+          region: '',
+          date1: '',
+          date2: '',
+          delivery: false,
+          type: [],
+          resource: '',
+          desc: ''
+        },
+        formLabelWidth: '120px'
+    };
   },
   methods: {
+    // 预览按钮
+    preview(){
+      this.dialogFormVisible=true
+    },
     // 删除按钮
     async deleteQuestions(id) {
-      debugger
-      await this.$confirm('您确定要删除吗')
-      await remove({id:id}) // 这里id时解构赋值
+      debugger;
+      await this.$confirm("您确定要删除吗");
+      await remove({ id: id }); // 这里id时解构赋值
       this.$message({
-        type:"success",
-        message:'删除成功'
-      })
+        type: "success",
+        message: "删除成功"
+      });
     },
     // 搜索功能
     serch() {
