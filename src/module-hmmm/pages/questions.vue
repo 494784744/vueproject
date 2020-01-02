@@ -11,7 +11,7 @@
       <!-- 第一行 -->
       <el-row type="flex" justify="start">
         <el-form-item label="学科">
-          <el-select v-model="subjectIDvalue" placeholder="请选择">
+          <el-select v-model="serchFrom.subjectID" placeholder="请选择">
             <el-option
               v-for="item in subjectID"
               :key="item.value"
@@ -21,7 +21,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="难度">
-          <el-select v-model="difficultyvalue" placeholder="请选择">
+          <el-select v-model="serchFrom.difficulty" placeholder="请选择">
             <el-option
               v-for="item in difficulty"
               :key="item.value"
@@ -31,7 +31,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="试题类型">
-          <el-select v-model="questionTypevalue" placeholder="请选择">
+          <el-select v-model="serchFrom.questionType" placeholder="请选择">
             <el-option
               v-for="item in questionType"
               :key="item.value"
@@ -40,9 +40,8 @@
             ></el-option>
           </el-select>
         </el-form-item>
-
         <el-form-item label="标签">
-          <el-select v-model="tagslistvalue" placeholder="请选择">
+          <el-select v-model="serchFrom.tags" placeholder="请选择">
             <el-option
               v-for="item in tagslist"
               :key="item.value"
@@ -54,35 +53,35 @@
       </el-row>
       <!-- 第二行 -->
       <el-row type="flex" justify="center">
-        <el-form-item label="城市">
-          <el-select v-model="provincesvalue" placeholder="请选择" @change="getCitys">
+        <el-form-item label="省份">
+          <el-select v-model="serchFrom.province" placeholder="请选择" @change="getCitys">
             <el-option v-for="(item,index) in provinces" :key="index" :value="item"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="区域">
-          <el-select v-model=" citysvalue " placeholder="请选择">
+        <el-form-item label="城市">
+          <el-select v-model="serchFrom.city" placeholder="请选择">
             <el-option v-for="(item,index) in citys" :key="index" :value="item"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="关键字">
-          <el-input v-model="input1" placeholder="请输入内容"></el-input>
+          <el-input v-model="serchFrom.keyword" placeholder="请输入内容"></el-input>
         </el-form-item>
         <el-form-item label="题目备注">
-          <el-input v-model="input1" placeholder="请输入内容"></el-input>
+          <el-input v-model="serchFrom.remarks" placeholder="请输入内容"></el-input>
         </el-form-item>
       </el-row>
       <!-- 第三行 -->
       <el-row type="flex" justify="end">
         <el-form-item label="企业简称">
-          <el-input v-model="input1" placeholder="请输入内容"></el-input>
+          <el-input v-model="serchFrom.shortName" placeholder="请输入内容"></el-input>
         </el-form-item>
         <el-form-item label="方向">
-          <el-select v-model=" directionvalue" placeholder="请选择">
+          <el-select v-model="serchFrom.direction" placeholder="请选择">
             <el-option v-for="(item,index) in direction" :key="index" :value="item"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="录入人">
-          <el-select v-model="directoryspeaplovalue" placeholder="请选择">
+          <el-select v-model="serchFrom.creatorID" placeholder="请选择">
             <el-option
               v-for="item in directoryspeaplo"
               :key="item.value"
@@ -92,7 +91,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="二级目录">
-          <el-input v-model="input1" placeholder="请输入内容"></el-input>
+          <el-input v-model="serchFrom.catalogID" placeholder="请输入内容"></el-input>
         </el-form-item>
       </el-row>
       <!-- 按钮 -->
@@ -131,14 +130,14 @@
       </el-table-column>
     </el-table>
     <!-- 分页 -->
-    <el-row style="height:60px;" type="flex" justify="end" align="middle" >
+    <el-row style="height:60px;" type="flex" justify="end" align="middle">
       <el-pagination
         background
         layout="prev, pager, next"
         :total="this.page.total"
         :page-sizes="page.pageSize"
         :current-page="page.currentPage"
-        @current-change='cheagePage'
+        @current-change="cheagePage"
       ></el-pagination>
     </el-row>
   </el-card>
@@ -153,16 +152,16 @@ import { provinces, citys } from "../../api/hmmm/citys";
 export default {
   data() {
     return {
-      direction, // 方向列表
-      directionvalue: "",
-      questionType, // 试题类型
-      questionTypevalue: "",
-      difficulty, // 试题难度
-      difficultyvalue: "",
+      // 第一行
       subjectID: [], // 学科列表
-      subjectIDvalue: "",
+      difficulty, // 试题难度
+      questionType, // 试题类型
       tagslist: [], // 标签列表
-      tagslistvalue: "",
+      // 第二行
+      provinces: [], // 城市列表
+      citys: [], // 区域列表
+      //第三行
+      direction, // 方向列表
       directoryspeaplo: [
         {
           value: "1",
@@ -173,12 +172,25 @@ export default {
           label: "编辑"
         }
       ], // //录入人列表
-      directoryspeaplovalue: "",
-      provinces: [], // 城市列表
-      provincesvalue: "",
-      citys: [], // 区域列表
-      citysvalue: "",
-      input1: "",
+
+      serchFrom: {
+        // 第一行
+        subjectID: "", // 学科
+        difficulty: "", // 试题难度
+        questionType: "", // 试题类型
+        tags: "" ,// 标签
+        // 第二行
+        province:"" ,// 所在省份
+        city:"", // 所在城市
+        keyword:"" ,// 关键字
+        remarks:"", // 题目备注
+        // 第三行
+        shortName:"", //企业简称
+        direction:"", //方向
+        creatorID:"", //录入人
+        catalogID:"" //目录
+      }, // 搜索栏封装
+      
       tableData: [
         // {
         //   id: "1",
@@ -208,8 +220,8 @@ export default {
     // 获取基础试题列表
     async getbasequest() {
       let result = await list({
-        page:this.page.currentPage, // 默认请求第1条数据
-        pagesize:this.page.pageSize[0] // 请求每页多少条
+        page: this.page.currentPage, // 默认请求第1条数据
+        pagesize: this.page.pageSize[0] // 请求每页多少条
       });
       // console.log(result.data);
       this.tableData = result.data.items;
@@ -217,8 +229,8 @@ export default {
     },
     // 改变页数切换页面
     cheagePage(newpage) {
-      this.page.currentPage = newpage
-      this.getbasequest()
+      this.page.currentPage = newpage;
+      this.getbasequest();
     },
     // 转换格式
     // 转换题型格式
@@ -315,7 +327,7 @@ export default {
   computed: {
     // 根据城市列表获取区域列表
     getCitys() {
-      return (this.citys = citys(this.provincesvalue));
+      return (this.citys = citys(this.serchFrom.province));
     }
   },
   created() {
