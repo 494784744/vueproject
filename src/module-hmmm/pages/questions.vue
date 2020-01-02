@@ -123,10 +123,12 @@
       ></el-table-column>
       <el-table-column property="creator" label="录入人" width="120"></el-table-column>
       <el-table-column property="operation" label="操作" width>
-        <el-button type="text">预览</el-button>
-        <el-button type="text">修改</el-button>
-        <el-button type="text">删除</el-button>
-        <el-button type="text">加入精选</el-button>
+        <template slot-scope="obj">
+          <el-button type="text" @click="preview(obj.row.id)">预览</el-button>
+          <el-button type="text" @click="alter(obj.row.id)">修改</el-button>
+          <el-button type="text" @click="deleteQuestions(obj.row.id)">删除</el-button>
+          <el-button type="text">加入精选</el-button>
+        </template>
       </el-table-column>
     </el-table>
     <!-- 分页 -->
@@ -144,7 +146,7 @@
 </template>
 
 <script>
-import { list, detail } from "../../api/hmmm/questions";
+import { list, detail,remove} from "../../api/hmmm/questions";
 import { simple as subjectlist } from "../../api/hmmm/subjects";
 import { simple as tagslist } from "../../api/hmmm/tags";
 import { direction, questionType, difficulty } from "../../api/hmmm/constants";
@@ -178,17 +180,17 @@ export default {
         subjectID: "", // 学科
         difficulty: "", // 试题难度
         questionType: "", // 试题类型
-        tags: "" ,// 标签
+        tags: "", // 标签
         // 第二行
-        province:"" ,// 所在省份
-        city:"", // 所在城市
-        keyword:"" ,// 关键字
-        remarks:"", // 题目备注
+        province: "", // 所在省份
+        city: "", // 所在城市
+        keyword: "", // 关键字
+        remarks: "", // 题目备注
         // 第三行
-        shortName:"", //企业简称
-        direction:"", //方向
-        creatorID:"", //录入人
-        catalogID:"" //目录
+        shortName: "", //企业简称
+        direction: "", //方向
+        creatorID: "", //录入人
+        catalogID: "" //目录
       }, // 搜索栏封装
 
       tableData: [
@@ -209,36 +211,45 @@ export default {
         total: 0, //总页数
         currentPage: 1, // 默认当前页数，第一条页数
         pageSize: [10] // 默认每页条数,好像默认就是10
-      },
-    };
+      }
+    }; 
   },
   methods: {
-    // 搜索功能
-   serch() {
+    // 删除按钮
+    async deleteQuestions(id) {
       debugger
-      this.page.currentPage=1;
-      this.getbasequest(this.serchFrom) // 接口有问题?
-      this.clear()
+      await this.$confirm('您确定要删除吗')
+      await remove({id:id}) // 这里id时解构赋值
+      this.$message({
+        type:"success",
+        message:'删除成功'
+      })
+    },
+    // 搜索功能
+    serch() {
+      this.page.currentPage = 1;
+      this.getbasequest(this.serchFrom); // 接口有问题?
+      this.clear();
     },
     // 清楚功能
     clear() {
-      this.serchFrom={
-          // 第一行
+      this.serchFrom = {
+        // 第一行
         subjectID: "", // 学科
         difficulty: "", // 试题难度
         questionType: "", // 试题类型
-        tags: "" ,// 标签
+        tags: "", // 标签
         // 第二行
-        province:"" ,// 所在省份
-        city:"", // 所在城市
-        keyword:"" ,// 关键字
-        remarks:"", // 题目备注
+        province: "", // 所在省份
+        city: "", // 所在城市
+        keyword: "", // 关键字
+        remarks: "", // 题目备注
         // 第三行
-        shortName:"", //企业简称
-        direction:"", //方向
-        creatorID:"", //录入人
-        catalogID:"" //目录
-      }
+        shortName: "", //企业简称
+        direction: "", //方向
+        creatorID: "", //录入人
+        catalogID: "" //目录
+      };
     },
     // 点击跳转到新增页面
     skipNewText() {
