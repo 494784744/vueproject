@@ -1,5 +1,5 @@
 <template>
-  <el-card class="question-container">
+  <el-card class="question-container" shadow="never">
     <div slot="header">
       <el-row>
         <el-button type="primary" size="mini" @click="skipNewText">新增试题</el-button>
@@ -56,20 +56,12 @@
       <el-row type="flex" justify="center">
         <el-form-item label="城市">
           <el-select v-model="provincesvalue" placeholder="请选择" @change="getCitys">
-            <el-option
-              v-for="(item,index) in provinces"
-              :key="index"
-              :value="item"
-            ></el-option>
+            <el-option v-for="(item,index) in provinces" :key="index" :value="item"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="区域">
-          <el-select v-model="value" placeholder="请选择">
-            <el-option
-              v-for="(item,index) in citys"
-              :key="index"
-              :value="item"
-            ></el-option>
+          <el-select v-model=" citysvalue " placeholder="请选择">
+            <el-option v-for="(item,index) in citys" :key="index" :value="item"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="关键字">
@@ -80,7 +72,7 @@
         </el-form-item>
       </el-row>
       <!-- 第三行 -->
-      <el-row type="flex" justify="end" >
+      <el-row type="flex" justify="end">
         <el-form-item label="企业简称">
           <el-input v-model="input1" placeholder="请输入内容"></el-input>
         </el-form-item>
@@ -90,7 +82,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="录入人">
-          <el-select v-model="value" placeholder="请选择">
+          <el-select v-model="directoryspeaplovalue" placeholder="请选择">
             <el-option
               v-for="item in directoryspeaplo"
               :key="item.value"
@@ -138,6 +130,17 @@
         <el-button type="text">加入精选</el-button>
       </el-table-column>
     </el-table>
+    <!-- 分页 -->
+    <el-row style="height:60px;" type="flex" justify="end" align="middle" >
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="this.page.total"
+        :page-sizes="page.pageSize"
+        :current-page="page.currentPage"
+        @current-change='cheagePage'
+      ></el-pagination>
+    </el-row>
   </el-card>
 </template>
 
@@ -145,8 +148,8 @@
 import { list, detail } from "../../api/hmmm/questions";
 import { simple as subjectlist } from "../../api/hmmm/subjects";
 import { simple as tagslist } from "../../api/hmmm/tags";
-import { direction, questionType, difficulty} from "../../api/hmmm/constants";
-import { provinces,citys} from "../../api/hmmm/citys";
+import { direction, questionType, difficulty } from "../../api/hmmm/constants";
+import { provinces, citys } from "../../api/hmmm/citys";
 export default {
   data() {
     return {
@@ -157,10 +160,10 @@ export default {
       difficulty, // 试题难度
       difficultyvalue: "",
       subjectID: [], // 学科列表
-      subjectIDvalue:'',
-      tagslist:[], // 标签列表
-      tagslistvalue:'',
-      directoryspeaplo: [ //录入人列表
+      subjectIDvalue: "",
+      tagslist: [], // 标签列表
+      tagslistvalue: "",
+      directoryspeaplo: [
         {
           value: "1",
           label: "超级管理员"
@@ -169,35 +172,14 @@ export default {
           value: "2",
           label: "编辑"
         }
-      ],
-      provinces:[], // 城市列表
-      provincesvalue:'',
-      citys:[],
+      ], // //录入人列表
+      directoryspeaplovalue: "",
+      provinces: [], // 城市列表
+      provincesvalue: "",
+      citys: [], // 区域列表
+      citysvalue: "",
       input1: "",
-      options: [
-        {
-          value: "选项1",
-          label: "黄金糕"
-        },
-        {
-          value: "选项2",
-          label: "双皮奶"
-        },
-        {
-          value: "选项3",
-          label: "蚵仔煎"
-        },
-        {
-          value: "选项4",
-          label: "龙须面"
-        },
-        {
-          value: "选项5",
-          label: "北京烤鸭"
-        }
-      ],
-      value: "",
-      tableData: [ 
+      tableData: [
         // {
         //   id: "1",
         //   number: "2",
@@ -210,19 +192,33 @@ export default {
         //   operation: "9"
         // }
       ], // 基础列表
+      page: {
+        total: 0, //总页数
+        currentPage: 1, // 默认当前页数，第一条页数
+        pageSize: [10] // 默认每页条数,好像默认就是10
+      },
       currentRow: null
     };
   },
   methods: {
     // 点击跳转到新增页面
     skipNewText() {
-     this.$router.push('/questions/new')
+      this.$router.push("/questions/new");
     },
     // 获取基础试题列表
     async getbasequest() {
-      let result = await list();
+      let result = await list({
+        page:this.page.currentPage, // 默认请求第1条数据
+        pagesize:this.page.pageSize[0] // 请求每页多少条
+      });
       // console.log(result.data);
       this.tableData = result.data.items;
+      this.page.total = result.data.counts;
+    },
+    // 改变页数切换页面
+    cheagePage(newpage) {
+      this.page.currentPage = newpage
+      this.getbasequest()
     },
     // 转换格式
     // 转换题型格式
@@ -313,24 +309,26 @@ export default {
     },
     // 获取城市列表
     async getProvinces() {
-       this.provinces = await provinces()
-        
-    },
+      this.provinces = await provinces();
+    }
   },
-  computed:{
+  computed: {
     // 根据城市列表获取区域列表
-    getCitys(){
-        return this.citys = citys(this.provincesvalue)
+    getCitys() {
+      return (this.citys = citys(this.provincesvalue));
     }
   },
   created() {
     this.getbasequest(); // 获取基础试题列表
     this.getSubjectList(); // 获取学科列表
-    this.getTagsList();// 获取标签列表
-    this.getProvinces();// 获取城市列表
+    this.getTagsList(); // 获取标签列表
+    this.getProvinces(); // 获取城市列表
   }
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.question-container {
+  min-height: 100vh;
+}
 </style>
