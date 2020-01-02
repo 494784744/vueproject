@@ -9,9 +9,9 @@
     <!-- 表单 -->
     <el-form :inline="true">
       <!-- 第一行 -->
-      <el-row>
+      <el-row type="flex" justify="start">
         <el-form-item label="学科">
-          <el-select v-model="value" placeholder="请选择">
+          <el-select v-model="subjectIDvalue" placeholder="请选择">
             <el-option
               v-for="item in subjectID"
               :key="item.value"
@@ -42,7 +42,7 @@
         </el-form-item>
 
         <el-form-item label="标签">
-          <el-select v-model="value" placeholder="请选择">
+          <el-select v-model="tagslistvalue" placeholder="请选择">
             <el-option
               v-for="item in tagslist"
               :key="item.value"
@@ -53,24 +53,22 @@
         </el-form-item>
       </el-row>
       <!-- 第二行 -->
-      <el-row>
+      <el-row type="flex" justify="center">
         <el-form-item label="城市">
-          <el-select v-model="value" placeholder="请选择">
+          <el-select v-model="provincesvalue" placeholder="请选择" @change="getCitys">
             <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              v-for="(item,index) in provinces"
+              :key="index"
+              :value="item"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="区域">
           <el-select v-model="value" placeholder="请选择">
             <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              v-for="(item,index) in citys"
+              :key="index"
+              :value="item"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -82,7 +80,7 @@
         </el-form-item>
       </el-row>
       <!-- 第三行 -->
-      <el-row>
+      <el-row type="flex" justify="end" >
         <el-form-item label="企业简称">
           <el-input v-model="input1" placeholder="请输入内容"></el-input>
         </el-form-item>
@@ -147,11 +145,11 @@
 import { list, detail } from "../../api/hmmm/questions";
 import { simple as subjectlist } from "../../api/hmmm/subjects";
 import { simple as tagslist } from "../../api/hmmm/tags";
-import { direction, questionType, difficulty } from "../../api/hmmm/constants";
+import { direction, questionType, difficulty} from "../../api/hmmm/constants";
+import { provinces,citys} from "../../api/hmmm/citys";
 export default {
   data() {
     return {
-      basequestion: "",
       direction, // 方向列表
       directionvalue: "",
       questionType, // 试题类型
@@ -159,7 +157,9 @@ export default {
       difficulty, // 试题难度
       difficultyvalue: "",
       subjectID: [], // 学科列表
+      subjectIDvalue:'',
       tagslist:[], // 标签列表
+      tagslistvalue:'',
       directoryspeaplo: [ //录入人列表
         {
           value: "1",
@@ -170,6 +170,9 @@ export default {
           label: "编辑"
         }
       ],
+      provinces:[], // 城市列表
+      provincesvalue:'',
+      citys:[],
       input1: "",
       options: [
         {
@@ -194,7 +197,7 @@ export default {
         }
       ],
       value: "",
-      tableData: [
+      tableData: [ 
         // {
         //   id: "1",
         //   number: "2",
@@ -206,14 +209,14 @@ export default {
         //   creator:'8',
         //   operation: "9"
         // }
-      ],
+      ], // 基础列表
       currentRow: null
     };
   },
   methods: {
     // 点击跳转到新增页面
     skipNewText() {
-      alert("跳转页面");
+     this.$router.push('/questions/new')
     },
     // 获取基础试题列表
     async getbasequest() {
@@ -307,12 +310,24 @@ export default {
     async getTagsList() {
       let result = await tagslist();
       this.tagslist = result.data;
+    },
+    // 获取城市列表
+    async getProvinces() {
+       this.provinces = await provinces()
+        
+    },
+  },
+  computed:{
+    // 根据城市列表获取区域列表
+    getCitys(){
+        return this.citys = citys(this.provincesvalue)
     }
   },
-  created() {TextTrackCue
+  created() {
     this.getbasequest(); // 获取基础试题列表
     this.getSubjectList(); // 获取学科列表
     this.getTagsList();// 获取标签列表
+    this.getProvinces();// 获取城市列表
   }
 };
 </script>
